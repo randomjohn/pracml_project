@@ -1,0 +1,37 @@
+---
+title: Human activity recognition - predicting correct performance of exercises from
+  context data
+author: "John Johnson"
+date: "Monday, November 10, 2014"
+output: html_document
+---
+
+# Introduction
+
+## Purpose
+
+This exercise is performed as part of the [Practical Machine Learning](https://class.coursera.org/predmachlearn-007) Coursera class. The purpose of the exercise is to predict the quality of weightlifting exercises from context data. Specifically, 6 participants simulate both correct and incorrect (including 4 common classes of mistakes) lifting of dumbbells, and data regarding motion and rotation are collected from the arms, forearms,belt, and dumbbell. 
+
+## Acknowledgments
+
+This data comes from the Human Activity Recognition project at [Groupware](http://groupware.les.inf.puc-rio.br).
+
+Velloso, E.; Bulling, A.; Gellersen, H.; Ugulino, W.; Fuks, H. Qualitative Activity Recognition of Weight Lifting Exercises. Proceedings of 4th International Conference in Cooperation with SIGCHI (Augmented Human '13) . Stuttgart, Germany: ACM SIGCHI, 2013.
+
+Read more: http://groupware.les.inf.puc-rio.br/har#collaborators#ixzz3IgG0oJx1
+
+# Data acquisition and processing
+
+The data were acquired from the course website, but may be accessed at the [Groupware site](http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises). They were saved into a local directory in their original comma-separated value (CSV) format.
+
+```{r}
+
+```
+
+The training dataset was split 60-40 into a training set and a hold-out validation set. All model-fitting (including data summarization, visualization, and procedures involving cross-validation and/or resampling) was done on the training set. The hold-out validation set was only used to estimate out-of-sample error.
+
+# Exploratory data analysis
+
+# Model fitting and out-of-sample error
+
+
