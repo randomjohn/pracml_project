@@ -24,11 +24,17 @@ Read more: http://groupware.les.inf.puc-rio.br/har#collaborators#ixzz3IgG0oJx1
 
 The data were acquired from the course website, but may be accessed at the [Groupware site](http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises). They were saved into a local directory in their original comma-separated value (CSV) format.
 
-```{r}
-
-```
-
 The training dataset was split 60-40 into a training set and a hold-out validation set. All model-fitting (including data summarization, visualization, and procedures involving cross-validation and/or resampling) was done on the training set. The hold-out validation set was only used to estimate out-of-sample error.
+
+A large number of columns, mostly those reporting summary statistics of x, y, and z variables, were mostly missing. Specifically, those with the following prefixes were discarded:
+* max
+* min
+* skewness
+* kurtosis
+* avg
+* var
+* stddev
+* amplitude
 
 # Exploratory data analysis
 

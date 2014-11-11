@@ -20,3 +20,9 @@ model2 <- train(classe~.,data=train.set2,
                 tuneLength=7)
 
 stopCluster(cl)
+
+pred1 <- predict(model1,newdata=val.set)
+cm1 <- confusionMatrix(pred1,val.set$classe)
+
+pred2 <- predict(model2,newdata=val.set)
+cm2 <- confusionMatrix(pred2,val.set$classe)
