@@ -3,10 +3,17 @@ title: Human activity recognition - predicting correct performance of exercises 
   context data
 author: "John Johnson"
 date: "Monday, November 10, 2014"
-output: html_document
+output:
+  html_document:
+    number_sections: yes
+    toc: yes
 ---
 
 # Introduction
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
 
 ## Purpose
 
@@ -24,7 +31,7 @@ Read more: http://groupware.les.inf.puc-rio.br/har#collaborators#ixzz3IgG0oJx1
 
 The data were acquired from the course website, but may be accessed at the [Groupware site](http://groupware.les.inf.puc-rio.br/har#weight_lifting_exercises). They were saved into a local directory in their original comma-separated value (CSV) format.
 
-The training dataset was split 60-40 into a training set and a hold-out validation set. All model-fitting (including data summarization, visualization, and procedures involving cross-validation and/or resampling) was done on the training set. The hold-out validation set was only used to estimate out-of-sample error.
+The training dataset was split 60-40 into a training set and a hold-out validation set. All model-fitting (including data summarization, visualization, and procedures involving cross-validation and/or resampling) was done on the training set. The hold-out validation set was only used to estimate out-of-sample error for the models.
 
 A large number of columns, mostly those reporting summary statistics of x, y, and z variables, were mostly missing. Specifically, those with the following prefixes were discarded:
 * max
@@ -36,8 +43,104 @@ A large number of columns, mostly those reporting summary statistics of x, y, an
 * stddev
 * amplitude
 
+```{r dataproc}
+library(caret)
+
+# extract features --------------------------------------------------------
+
+extract.features <- function(df) {
+  # remove variables with few values
+  for (pre in c("max_","min_","avg_","skewness_","kurtosis_",
+                "avg_","var_","stddev_","amplitude")) {
+    varnames <- grep(paste0("^",pre),names(df),value=T)
+    for (thisvar in varnames) {
+      df[,thisvar] <- NULL
+    }
+  }
+  
+  return(df)
+}
+
+# load and process training data ------------------------------------------
+lift.train <- read.csv("pml-training.csv")
+
+# process training data here
+lift.train <- extract.features(lift.train)
+
+
+# create a hold-out set
+set.seed(3878)
+intrain <- createDataPartition(lift.train$classe,p=0.6)[[1]]
+train.set <- lift.train[intrain,]
+val.set <- lift.train[-intrain,]
+
+# load and process test data ----------------------------------------------
+lift.test <- read.csv("pml-testing.csv")
+lift.test <- extract.features(lift.test)
+```
+
+
 # Exploratory data analysis
+
+The distribution of classes were as follows:
+
+```{r classdist}
+qplot(classe,data=train.set,geom=c("bar"),xlab="Error class")
+```
+
+In this dataset, the classes referred to errors made when lifting dumbbells, and have the following meanings:
+
+Class|Error made
+---|---
+A|Exercise performed correctly
+B|Elbows thrown to front
+C|Dumbbell lifted only halfway
+D|Dumbbell lowered only halfway
+E|Hips thrown to front
+
+Because of the large number of predictor variables, feature pairs plots were broken down into arm, belt, dumbbell, and forearm variables. This seemed to be more illustrative than, for example, breaking down into roll, pitch, yaw, and acceleration variables.
+
+The relationships among the variables and the outcome were as follows:
+
+```{r featureplots}
+arm.vars <- grep("_arm$",names(train.set),value=T)
+belt.vars <- grep("_belt$",names(train.set),value=T)
+dumbbell.vars <- grep("_dumbbell$",names(train.set),value=T)
+forearm.vars <- grep("_forearm$",names(train.set),value=T)
+featurePlot(train.set[,arm.vars],train.set$classe,"pairs")
+featurePlot(train.set[,belt.vars],train.set$classe,"pairs")
+featurePlot(train.set[,dumbbell.vars],train.set$classe,"pairs")
+featurePlot(train.set[,forearm.vars],train.set$classe,"pairs")
+```
+
+It is clear that the relationships among the features and outcome are highly nonlinear. 
 
 # Model fitting and out-of-sample error
 
+A random forest model was used to predict classification. Ten-fold cross-validation was used to select the optimal number of variables to sample for candidates at each split. To reduce the time needed to train the model, three processors were used.
 
+```{r rffit}
+library(doParallel)
+cl <- makeCluster(3)
+registerDoParallel(cl)
+model2 <- train(classe~.,data=train.set2,
+                preProcess=c("center","scale"),
+                method="rf",
+                trControl=trainControl(method="cv"),
+                tuneLength=7)
+
+stopCluster(cl)
+print(model2)
+```
+
+The confusion matrix resulting from comparing the predictions of the random forest model on the hold-out validation set (and an estimate for the out-of-sample error) is as follows:
+  
+```{r confusionmat}
+pred2 <- predict(model2,newdata=val.set)
+cm2 <- confusionMatrix(pred2,val.set$classe)
+print(cm2)
+```
+
+The random forest model is highly accurate in not just classifying on the training set but also predicting new errors from data obtained from motion sensors.
+
+Note also that accuracy estimated by cross-validation for the selected parameter (mtry=`r model2$finalModel$tuneValue`) is `r model2$results[model2$results$mtry==as.numeric(model2$finalModel$tuneValue),'Accuracy']`, and that produced by the confusion matrix on the hold-out set is `r cm2$overall['Accuracy']`, which are very close.

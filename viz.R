@@ -3,7 +3,7 @@ library(ggplot2)
 library(caret)
 
 # look at the classes, I guess as a sanity check
-qplot(classe,data=train.set,geom=c("bar"))
+qplot(classe,data=train.set,geom=c("bar"),xlab="Error class")
 
 # a lot of these variables are useless, having only a few nonmissing rows
 nearZeroVar(train.set,saveMetrics=T)
